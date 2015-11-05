@@ -161,11 +161,14 @@ class SinemaConfig:
                         "Room": r
                     })
                     room = r
+                    node = None
+                    user = None
                 if not n == node:
                     print '  Node: {Node:s}'.format(**{
                         "Node": n
                     })
                     node = n
+                    user = None
                 if not u == user:
                     print '    User: {User:s}'.format(**{
                         "User": u
