@@ -1,11 +1,12 @@
-__author__ = 'fabrizio rosa'
+__author__ = 'Fabrizio Rosa'
 
 import ConfigParser
 import os.path
 
+DEFAULT_DATE = '200101010000'
+
 
 class SinemaConfig:
-    defdate = '200101010000'
 
     def __init__(self):
         self.config = ConfigParser.ConfigParser()
@@ -13,8 +14,8 @@ class SinemaConfig:
             self.config.readfp(open('test.cfg'))
 
     def _save_config(self):
-        with open('test.cfg', 'w') as conffile:
-            self.config.write(conffile)
+        with open('test.cfg', 'w') as configuration_file:
+            self.config.write(configuration_file)
 
     def add_system(self, system):
         if self.config.has_section(system):
@@ -29,7 +30,7 @@ class SinemaConfig:
                      node,
                      user,
                      function,
-                     value=defdate):
+                     value=DEFAULT_DATE):
         sep = '.'
         func_id_fields = (room, node, user, function)
         option = sep.join(func_id_fields)
@@ -69,13 +70,13 @@ class SinemaConfig:
         if not self.config.has_option(system, option):
             print 'ERROR: Function does not exists: {Opt:s}'.format(**{"Opt": option})
             exit()
-        self.config.set(system, option, self.defdate)
+        self.config.set(system, option, DEFAULT_DATE)
         self._save_config()
 
     def list_sections(self):
-        syslist = self.config.sections()
-        if len(syslist) > 0:
-            for s in syslist:
+        systems_list = self.config.sections()
+        if len(systems_list) > 0:
+            for s in systems_list:
                 print s
         else:
             print "INFO: No system configured"
@@ -85,13 +86,13 @@ class SinemaConfig:
         if not self.config.has_section(system):
             print 'ERROR: System does not exists: {Sys:s}'.format(**{"Sys": system})
             exit()
-        funlist = self.config.items(system)
+        functions_list = self.config.items(system)
         sep = '.'
         room = None
         node = None
         user = None
-        if len(funlist) > 0:
-            for (fun, val) in funlist:
+        if len(functions_list) > 0:
+            for (fun, val) in functions_list:
                 (r, n, u, f,) = fun.split(sep)
                 if not r == room:
                     print 'Room: {Room:s}'.format(**{"Room": r})
@@ -131,15 +132,15 @@ class SinemaConfig:
             print 'ERROR: System does not exists: {Sys:s}'.format(**{"Sys": system})
             exit()
         sep = '.'
-        roomfound = False
+        room_found = False
         nodes = list()
         for (fun, val) in self.config.items(system):
             (r, n, u, f) = fun.split(sep)
             if r == room:
-                roomfound = True
+                room_found = True
                 if n not in nodes:
                     nodes.append(n)
-        if roomfound:
+        if room_found:
             if len(nodes) > 0:
                 for n in nodes:
                     print n
@@ -199,61 +200,61 @@ if __name__ == '__main__':
     args = parser.parse_args()
     configuration = SinemaConfig()
     missing_error = 'ERROR: {Object:s} is missing'
-    c = args.command
-    s = args.system
-    r = args.room
-    n = args.node
-    u = args.user
-    f = args.function
-    v = args.value
+    cmd = args.command
+    sys = args.system
+    roo = args.room
+    nod = args.node
+    usr = args.user
+    fnc = args.function
+    vle = args.value
     mode = -1
-    if s and r and n and u and f and v:
+    if sys and roo and nod and usr and fnc and vle:
         mode = 6
-    elif s and r and n and u and f and not v:
+    elif sys and roo and nod and usr and fnc and not vle:
         mode = 5
-    elif s and r and n and u and not f and not v:
+    elif sys and roo and nod and usr and not fnc and not vle:
         mode = 4
-    elif s and r and n and not u and not f and not v:
+    elif sys and roo and nod and not usr and not fnc and not vle:
         mode = 3
-    elif s and r and not n and not u and not f and not v:
+    elif sys and roo and not nod and not usr and not fnc and not vle:
         mode = 2
-    elif s and not r and not n and not u and not f and not v:
+    elif sys and not roo and not nod and not usr and not fnc and not vle:
         mode = 1
-    elif not s and not r and not n and not u and not f and not v:
+    elif not sys and not roo and not nod and not usr and not fnc and not vle:
         mode = 0
     else:
         print 'ERROR: Wrong parameter sequence'
 
-    if c == "add":
+    if cmd == "add":
         if mode == 1:
-            configuration.add_system(s)
+            configuration.add_system(sys)
         elif mode == 5:
-            configuration.add_function(s, r, n, u, f)
+            configuration.add_function(sys, roo, nod, usr, fnc)
         elif mode == 6:
-            configuration.add_function(s, r, n, u, f, v)
+            configuration.add_function(sys, roo, nod, usr, fnc, vle)
         else:
             print 'ERROR: Missing parameter(s)'
-    elif c == "upd":
+    elif cmd == "upd":
         if mode == 6:
-            configuration.upd_function(s, r, n, u, f, v)
+            configuration.upd_function(sys, roo, nod, usr, fnc, vle)
         else:
             print 'ERROR: Missing parameter(s)'
-    elif c == "del":
+    elif cmd == "del":
         print "INFO: order not implemented"
-    elif c == "rst":
+    elif cmd == "rst":
         if mode == 5:
-            configuration.rst_function(s, r, n, u, f)
+            configuration.rst_function(sys, roo, nod, usr, fnc)
         else:
             print 'ERROR: Wrong parameter sequence'
-    elif c == "list":
+    elif cmd == "list":
         if mode == 0:
             configuration.list_sections()
         elif mode == 1:
-            configuration.list_system_rooms(s)
+            configuration.list_system_rooms(sys)
         elif mode == 2:
-            if r == "all":
-                configuration.list_system_functions(s)
+            if roo == "all":
+                configuration.list_system_functions(sys)
             else:
-                configuration.list_system_room_nodes(s, r)
+                configuration.list_system_room_nodes(sys, roo)
         else:
             print "ERROR: too many parameters"
